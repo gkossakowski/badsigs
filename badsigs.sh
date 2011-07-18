@@ -13,16 +13,17 @@ fi
 
 CD=`pwd`
 WD="$CD/badsigs_working_dir"
+[ -d $WD ] && rm -rf $WD
 mkdir $WD
+
 TMP="$WD/classes"
 SRC="$WD/src"
-LOG="$CD/ecj.log"
 
-rm -rf $TMP
-mkdir $TMP
-rm -rf $SRC
-mkdir $SRC
+LOG="$CD/ecj.log"
 rm $LOG
+
+mkdir $TMP
+mkdir $SRC
 
 cd $TMP
 jar xf $SCALA_JAR
