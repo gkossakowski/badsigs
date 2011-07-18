@@ -44,7 +44,7 @@ for i in `find ./scala -name *.class`; do
     continue
   fi
   #possibly more names should be excluded that are java keywords
-  if [[ $tt =~ .*(package|throws).* ]]
+  if [[ $tt =~ .*(package|throws|transient|native|volatile|switch|strictfp).* ]]
   then
     [ -n "${VERBOSE+x}" ] && echo "Skipping $tt"
     continue
