@@ -59,7 +59,7 @@ cd $CD
 echo "Running ecj"
 for i in `ls "$SRC"/*.java`; do
   echo "Processing $i"
-  java -jar ecj-3.7.jar -nowarn -d none -classpath $SCALA_JAR $i 2>> $LOG
+  java -jar ecj-3.7.jar -1.5 -nowarn -d none -classpath $SCALA_JAR $i 2>> $LOG
   [ $? -ne 0 ] && echo "" >> $LOG
 done
 echo ""
