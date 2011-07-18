@@ -28,9 +28,9 @@ mkdir $SRC
 cd $TMP
 jar xf $SCALA_JAR
 
-echo "Checking $SCALA_JAR:"
-cat $TMP/library.properties
-echo ""
+echo "Checking $SCALA_JAR:" | tee -a $LOG
+cat $TMP/library.properties | tee -a $LOG
+echo "" | tee -a $LOG
 
 echo "Generating Java files"
 j=0
