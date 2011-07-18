@@ -1,8 +1,21 @@
-SCALA_JAR='/Users/grek/scala/scala-trunk/build/pack/lib/scala-library.jar'
+if [ -z $1 ]
+then
+  echo "Pass path to scala-library.jar as a first argument."
+  exit 1
+fi
+
+SCALA_JAR="$1"
+if [ ! -f "$SCALA_JAR" ]
+then
+  echo "Couldn't find jar at $SCALA_JAR"
+  exit 1
+fi
 
 CD=`pwd`
-TMP="$CD/tmp"
-SRC="$CD/src"
+WD="$CD/badsigs_working_dir"
+mkdir $WD
+TMP="$WD/classes"
+SRC="$WD/src"
 LOG="$CD/ecj.log"
 
 rm -rf $TMP
