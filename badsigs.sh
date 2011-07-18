@@ -27,37 +27,19 @@ mkdir $SRC
 
 cd $TMP
 jar xf $SCALA_JAR
+cd $CD
 
 echo "Checking $SCALA_JAR:" | tee -a $LOG
 cat $TMP/library.properties | tee -a $LOG
 echo "" | tee -a $LOG
 
 echo "Generating Java files"
-j=0
-for i in `find ./scala -name *.class`; do
-  j=$(($j+1))
-  t=`expr "$i" : '\./\(.*\)\.class'`
-  tt=${t//\//.}
-  if [[ $tt =~ .*\$.* ]]
-  then
-    [ -n "${VERBOSE+x}" ] && echo "Skipping $tt"
-    continue
-  fi
-  #possibly more names should be excluded that are java keywords
-  if [[ $tt =~ .*(package|throws|transient|native|volatile|switch|strictfp).* ]]
-  then
-    [ -n "${VERBOSE+x}" ] && echo "Skipping $tt"
-    continue
-  fi
-  echo "import $tt;" > $SRC/$j.java
-  echo "public class C$j {}" >> $SRC/C$j.java
-done
-echo ""
-cd $CD
-
+scala -classpath target/scala-2.9.0.1/classes/ badsigs.Main $TMP $SRC
+N=`find $SRC -name '*.java' | wc -l`
+echo "Generated $N files"
 
 echo "Running ecj"
-for i in `ls "$SRC"/*.java`; do
+for i in `find $SRC -name '*.java'`; do
   echo "Processing $i"
   java -jar ecj-3.7.jar -1.5 -nowarn -d none -classpath $SCALA_JAR $i 2>> $LOG
   [ $? -ne 0 ] && echo "" >> $LOG
