@@ -24,28 +24,37 @@ object Main {
       case Args.JarFile(name) => sys.error("not implemented yet")
     }
     
-    def generateJavaClass(name: String, importedType: String): String = 
+    def generateJavaClass(name: String, importedType: String, binaryName: String): String =
       """|import %1s;
-         |
-         |public class %2s {}
-         |""".format(importedType, name).stripMargin
+         |//binaryName=%2s
+         |public class %3s {}
+         |""".format(importedType, binaryName, name).stripMargin
       
-    
-//    try {
+
       val wd = prepareWorkDir(workDir)
-//      println("Working directory is " + wd)
-//      val badsigsDir = (wd / Directory("badsigs")).createDirectory(true, false)
       val badsigsDir = wd
       
-      val classes = readClassDefsFromInput(input)
+      val (anonymous, classes) = readClassDefsFromInput(input).toList.partition(_.anonymous)
       
-      classes.zipWithIndex foreach {
+//      {
+//        val names = anonymous map (x => sourceName(x.name, x.innerClasses))
+//        println("Skipping %1d anonymous classes:%2s".format(names.size, names mkString "\n"))
+//      }
+
+      def isPublic(x: ClassDef): Boolean = {
+        import scala.tools.nsc.symtab.classfile.ClassfileConstants._
+        x.hasFlag(JAVA_ACC_PUBLIC)
+      }
+
+      classes.filter(isPublic).zipWithIndex foreach {
         case (clazz, i) =>
-          val importedType = sourceName(clazz.name, clazz.innerClasses)
-          val javaClassName = "C" + i
-          val f = badsigsDir / File(javaClassName + ".java")
-          f.createFile(false)
-          f.writeAll(generateJavaClass(javaClassName, importedType))
+          val importedType = JavaNames.sourceName(clazz.name, clazz.innerClasses)
+          if (JavaNames.isValid(importedType)) {
+            val javaClassName = "C" + i
+            val f = badsigsDir / File(javaClassName + ".java")
+            f.createFile(false)
+            f.writeAll(generateJavaClass(javaClassName, importedType, clazz.name))
+          }
       }
     
     val classpath = input match {
@@ -53,25 +62,27 @@ object Main {
       case Args.JarFile(_) => sys.error("not implemented yet")
     }
     
-    println("Invoking Ecj")
+    val errors = Ecj.compileJavaFiles(badsigsDir, classpath)
     
-    Ecj.compileJavaFiles(badsigsDir, classpath)
+    var i = 0
+    errors foreach { x =>
+      i = i + 1
+      Console.err.println(x)
+      Console.err.println
+    }
+    println("Found %1d errors".format(i))
+    if (i > 0)
+      exitCode = 1
       
-      exit(exitCode)
-   /*} catch {
-      case e: java.io.IOException => 
-        println("Error reading file %s: %s".format(args(1), e.getMessage))
-    }*/
+    exit(exitCode)
   }
 
-  def prepareWorkDir(x: Args.WorkDir): Directory = Path(x.name).createDirectory(true, false).toAbsolute
-  
-  def sourceName(binaryName: String, innerClasses: Map[String, InnerClassEntry]): String = 
-    innerClasses.get(binaryName) match {
-      case Some(InnerClassEntry(external, outer, name, _)) => sourceName(outer, innerClasses) + "." + name
-      case None => binaryName
-    }
-  
+  def prepareWorkDir(x: Args.WorkDir): Directory = {
+    val p = Path(x.name)
+    p.deleteRecursively()
+    p.createDirectory(true, true).toAbsolute
+  }
+
   object Args {
     sealed abstract class Input
     case class ClassDir(name: String) extends Input
