@@ -26,8 +26,8 @@ mkdir $WD
 TMP="$WD/classes"
 SRC="$WD/src"
 
-LOG="$CD/ecj.log"
-rm $LOG
+#LOG="$CD/ecj.log"
+#rm $LOG
 
 mkdir $TMP
 mkdir $SRC
@@ -36,18 +36,18 @@ cd $TMP
 jar xf $SCALA_JAR
 cd $CD
 
-echo "Checking $SCALA_JAR:" | tee -a $LOG
-cat $TMP/library.properties | tee -a $LOG
-echo "" | tee -a $LOG
+echo "Checking $SCALA_JAR:"
+cat $TMP/library.properties
+echo ""
 
 echo "Running Main app (will generate Java files and run ecj)"
-java -jar "$BADSIGS_JAR" $TMP $SRC 2>> $LOG
+java -jar "$BADSIGS_JAR" $TMP $SRC
 
 if [ $? -eq 0 ]
 then
   echo "No errors found!"
   exit 0
 else
-  echo "Errors found. Check $LOG for details."
+  echo "Errors found. Check see above for details."
   exit 1
 fi
