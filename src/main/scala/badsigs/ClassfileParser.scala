@@ -204,8 +204,8 @@ var in: BufferReader = _  // the class file reader
 
   def parseClass(): ClassDef = {
     var flags = in.nextChar
-    val nameIdx = in.nextChar
-    val externalName = pool.getClassName(nameIdx)
+    val classNameIdx = in.nextChar
+    val externalName = pool.getClassName(classNameIdx)
 
     def parseSuperClass(): String = 
       pool.getClassName(in.nextChar)
@@ -220,10 +220,21 @@ var in: BufferReader = _  // the class file reader
     interfaces = parseInterfaces()
     parseFields()
     parseMethods()
-    val innerClasses = parseInnerClasses
+    val innerClassesRaw = parseInnerClasses
+    val innerClasses = (innerClassesRaw collect {
+      case InnerClassEntryRaw(innerIndex, outerIndex, nameIndex, jflags)
+        if innerIndex != 0 && outerIndex != 0 && nameIndex != 0 =>
+          val inner = pool.getClassName(innerIndex)
+          val outer = pool.getClassName(outerIndex)
+          val name  = pool.getName(nameIndex)
+          inner -> InnerClassEntry(inner, outer, name, jflags)
+    }).toMap
+    val anonymous = innerClassesRaw.exists {
+      case InnerClassEntryRaw(innerIndex, _, nameIndex, _) => innerIndex == classNameIdx && nameIndex == 0
+    }
     val attrs = parseAttributes
     ClassDef(externalName.replace('/', '.'), superclass, interfaces, fields, methods, attrs.get("Signature"),
-        attrs, innerClasses)
+        attrs, anonymous, innerClasses)
   }
 
   def skipAttributes() {
@@ -251,9 +262,9 @@ var in: BufferReader = _  // the class file reader
   }
   
   /** Parses InnerClass attribute. Leaves in.bp intact. */
-  def parseInnerClasses: immutable.Map[String, InnerClassEntry] = {
+  def parseInnerClasses: Seq[InnerClassEntryRaw] = {
     val oldBp = in.bp
-    var innerClasses = new collection.immutable.ListMap[String, InnerClassEntry]
+    var innerClasses = collection.immutable.Seq.empty[InnerClassEntryRaw]
     
     val attrCount = in.nextChar
     for (i <- 0 until attrCount) {
@@ -268,13 +279,8 @@ var in: BufferReader = _  // the class file reader
           val outerIndex = in.nextChar.toInt
           val nameIndex = in.nextChar.toInt
           val jflags = in.nextChar.toInt
-          if (innerIndex != 0 && outerIndex != 0 && nameIndex != 0) {
-            val inner = pool.getClassName(innerIndex)
-            val outer = pool.getClassName(outerIndex)
-            val name =  pool.getName(nameIndex)
-            val entry = InnerClassEntry(inner, outer, name, jflags)
-            innerClasses += (inner -> entry)
-          }
+          val entry = InnerClassEntryRaw(innerIndex, outerIndex, nameIndex, jflags)
+          innerClasses = innerClasses :+ entry
         }
         assert(in.bp == attrEnd)
       }

@@ -56,9 +56,12 @@ case class ClassDef(name: String,
                     methods: List[MethodDef],
                     javasig: Option[String],
                     attrs: Map[String, String],
+                    anonymous: Boolean,
                     innerClasses: Map[String, InnerClassEntry]) {
   override def toString = "%s extends %s\n\t%s".format(name, (superclass :: interfaces).mkString("", " with ", ""), javasig.getOrElse("")) 
 }
+
+case class InnerClassEntryRaw(external: Int, outer: Int, name: Int, jflags: Int)
 
 case class InnerClassEntry(external: String, outer: String, name: String, jflags: Int) {
   override def toString = name + " in " + outer + "(" + external +")"
