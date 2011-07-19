@@ -49,7 +49,8 @@ case class MethodDef(override val name: String,
   def kind = "def"
 }
 
-case class ClassDef(name: String, 
+case class ClassDef(name: String,
+                    flags: Int,
                     superclass: String, 
                     interfaces: List[String], 
                     fields: List[FieldDef], 
@@ -58,7 +59,9 @@ case class ClassDef(name: String,
                     attrs: Map[String, String],
                     anonymous: Boolean,
                     innerClasses: Map[String, InnerClassEntry]) {
-  override def toString = "%s extends %s\n\t%s".format(name, (superclass :: interfaces).mkString("", " with ", ""), javasig.getOrElse("")) 
+  override def toString = "%s extends %s\n\t%s".format(name, (superclass :: interfaces).mkString("", " with ", ""), javasig.getOrElse(""))
+
+  def hasFlag(f: Int) = (flags & f) != 0
 }
 
 case class InnerClassEntryRaw(external: Int, outer: Int, name: Int, jflags: Int)
