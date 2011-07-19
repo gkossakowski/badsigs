@@ -70,9 +70,10 @@ object Main {
       Console.err.println(x)
       Console.err.println
     }
-    println("Found %1d errors".format(i))
-    if (i > 0)
+    if (i > 0) {
+      Console.err.println("Found %1d errors".format(i))
       exitCode = 1
+    }
       
     exit(exitCode)
   }
