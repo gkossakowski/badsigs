@@ -5,9 +5,9 @@ import java.io.StringWriter
 
 object Ecj {
   
-  def compileJavaFiles(d: Directory, cp: String): Iterator[String] = {
+  def compileJavaFiles(d: Directory, cp: String): Seq[String] = {
     val javaFiles = d.walkFilter(x => x.isFile && x.hasExtension("java"))
-    val errors = javaFiles flatMap { f =>
+    val errors = javaFiles.toSeq.par flatMap { f =>
       import org.eclipse.jdt.core.compiler.batch.BatchCompiler
       val errStr = new StringWriter()
       val err = new PrintWriter(errStr)
@@ -15,7 +15,7 @@ object Ecj {
       val success = BatchCompiler.compile(cmd, new PrintWriter(System.out), err, null);
       if (success) None else Some(errStr.toString)
     }
-    errors
+    errors.seq
   }
 
 }
