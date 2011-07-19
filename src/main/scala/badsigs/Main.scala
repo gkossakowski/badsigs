@@ -32,7 +32,6 @@ object Main {
       
 
       val wd = prepareWorkDir(workDir)
-      val badsigsDir = wd
       
       val (anonymous, classes) = readClassDefsFromInput(input).toList.partition(_.anonymous)
       
@@ -51,7 +50,7 @@ object Main {
           val importedType = JavaNames.sourceName(clazz.name, clazz.innerClasses)
           if (JavaNames.isValid(importedType)) {
             val javaClassName = "C" + i
-            val f = badsigsDir / File(javaClassName + ".java")
+            val f = wd / File(javaClassName + ".java")
             f.createFile(false)
             f.writeAll(generateJavaClass(javaClassName, importedType, clazz.name))
           }
@@ -62,7 +61,7 @@ object Main {
       case Args.JarFile(_) => sys.error("not implemented yet")
     }
     
-    val errors = Ecj.compileJavaFiles(badsigsDir, classpath)
+    val errors = Ecj.compileJavaFiles(wd, classpath)
     
     var i = 0
     errors foreach { x =>
@@ -78,11 +77,7 @@ object Main {
     exit(exitCode)
   }
 
-  def prepareWorkDir(x: Args.WorkDir): Directory = {
-    val p = Path(x.name)
-    p.deleteRecursively()
-    p.createDirectory(true, true).toAbsolute
-  }
+  def prepareWorkDir(x: Args.WorkDir): Directory = Path(x.name).createDirectory(true, true).toAbsolute
 
   object Args {
     sealed abstract class Input
