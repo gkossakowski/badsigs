@@ -47,6 +47,15 @@ object Main {
           f.createFile(false)
           f.writeAll(generateJavaClass(javaClassName, importedType))
       }
+    
+    val classpath = input match {
+      case Args.ClassDir(name) => Path(name).toAbsolute.toString
+      case Args.JarFile(_) => sys.error("not implemented yet")
+    }
+    
+    println("Invoking Ecj")
+    
+    Ecj.compileJavaFiles(badsigsDir, classpath)
       
       exit(exitCode)
    /*} catch {
