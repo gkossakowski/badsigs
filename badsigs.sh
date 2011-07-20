@@ -1,3 +1,6 @@
+CD=`dirname "$0"`
+cd "$CD"
+
 if [ -z $1 ]
 then
   echo "Pass path to a jar or classes directory as a first argument."
@@ -12,7 +15,6 @@ then
   exit 1
 fi
 
-CD=`pwd`
 WD="$CD/badsigs_working_dir"
 if [ -d $WD ]
 then
