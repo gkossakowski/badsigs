@@ -1,15 +1,9 @@
 if [ -z $1 ]
 then
-  echo "Pass path to scala-library.jar as a first argument."
+  echo "Pass path to a jar or classes directory as a first argument."
   exit 1
 fi
-
-SCALA_JAR="$1"
-if [ ! -f "$SCALA_JAR" ]
-then
-  echo "Couldn't find jar at $SCALA_JAR"
-  exit 1
-fi
+LOCATION="$1"
 
 BADSIGS_JAR="target/badsigs-assembly-0.1-SNAPSHOT.jar"
 if [ ! -f "$BADSIGS_JAR" ]
@@ -27,20 +21,32 @@ then
 fi
 mkdir $WD
 
-TMP="$WD/classes"
+CLASSES="$WD/classes"
+mkdir "$CLASSES"
+
+if [ -f "$LOCATION" ]
+then
+  cd $CLASSES
+  jar xf $LOCATION
+  cd $CD
+elif [ -d "$LOCATION" ]
+then
+  cp -R "$LOCATION"/* $CLASSES
+else
+  echo "Bad location $LOCATION passed. Pass path to either jar or classes directory."
+  exit 1
+fi
+
 SRC="$WD/src"
 
-mkdir $TMP
-
-cd $TMP
-jar xf $SCALA_JAR
-cd $CD
-
-echo "Checking $SCALA_JAR:"
-cat $TMP/library.properties
-echo ""
+echo "Checking $LOCATION:"
+if [ -f "$CLASSES/library.properties" ]
+then
+  cat $CLASSES/library.properties
+  echo ""
+fi
 
 echo "Running Main app (will generate Java files and run ecj)"
-java -jar "$BADSIGS_JAR" $TMP $SRC
+java -jar "$BADSIGS_JAR" $CLASSES $SRC
 
 exit $?
