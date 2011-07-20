@@ -1,4 +1,4 @@
-CD=`dirname "$0"`
+CD=`cd "$(dirname $0)" && pwd`
 cd "$CD"
 
 if [ -z $1 ]
