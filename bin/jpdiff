@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+#
+
+set -e
+progdir=$(dirname $0) 
+
+[[ $# -eq 2 ]] || { echo "Usage: $0 <dir> <dir>" ; exit 1; }
+
+dir1="$1"
+dir2="$2"
+
+jp1=$(mktemp -t jpdiff)
+jp2=$(mktemp -t jpdiff)
+
+$progdir/jpmany "$dir1" &> "$jp1"
+$progdir/jpmany "$dir2" &> "$jp2"
+
+diff "$jp1" "$jp2"

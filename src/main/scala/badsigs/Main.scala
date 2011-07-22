@@ -8,14 +8,14 @@ object Main {
   var exitCode = 0;
     
   def main(args: Array[String]) {
-    val (input, workDir) = parseArgs(args)
+    val (input, workDir, pred) = parseArgs(args)
     
     def readClassDefsFromInput(input: Args.Input): Iterator[ClassDef] = input match {
       case Args.ClassDir(name) =>
         val path = Path(name)
-        assert(path.exists, "Path %1s does not exist".format(path.toAbsolute.toString))
+        assert(path.exists, "Path %s does not exist".format(path.toAbsolute))
         val classes: Iterator[File] = path.walk.collect {
-          case p: Path if p.isFile && p.hasExtension("class") => p.toFile
+          case p: Path if p.isFile && p.hasExtension("class") && pred(p.path) => p.toFile
         }
         classes.map { f =>
           val parser = new ClassfileParser
@@ -77,28 +77,37 @@ object Main {
     exit(exitCode)
   }
 
-  def prepareWorkDir(x: Args.WorkDir): Directory = Path(x.name).createDirectory(true, true).toAbsolute
+  def prepareWorkDir(x: Args.WorkDir): Directory = {
+    val p = Path(x.name)
+    if (p.isDirectory) p.toDirectory.toAbsolute
+    else p.createDirectory(true, true).toAbsolute
+  }
 
   object Args {
     sealed abstract class Input
+
     case class ClassDir(name: String) extends Input
     case class JarFile(name: String) extends Input
-    
     case class WorkDir(name: String)
   }
   
-  def parseArgs(args: Array[String]): (Args.Input, Args.WorkDir) = {
+  def parseArgs(args: Array[String]): (Args.Input, Args.WorkDir, String => Boolean) = {
     import Args._
     args.toList match {
-      case input :: workDir :: Nil =>
-        (if (input endsWith ".jar") JarFile(input) else ClassDir(input), WorkDir(workDir))
+      case input :: workDir :: xs =>
+        val arg1 = if (input endsWith ".jar") JarFile(input) else ClassDir(input)
+        val arg2 = WorkDir(workDir)
+        val arg3: String => Boolean = if (xs.isEmpty) _ => true else _ contains xs.head
+        
+        (arg1, arg2, arg3)
+
       case _ => usage()
     }
   }
   
   def usage() = {
     println(
-"""Usage: badsigs <classDirectory|jarFile> <workDirectory>
+"""Usage: badsigs <classDirectory|jarFile> <workDirectory> [filter string]
 """)
     sys.exit(1)
   }

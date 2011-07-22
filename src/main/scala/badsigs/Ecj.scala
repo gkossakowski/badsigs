@@ -7,7 +7,7 @@ object Ecj {
   
   def compileJavaFiles(d: Directory, cp: String): Seq[String] = {
     val javaFiles = d.walkFilter(x => x.isFile && x.hasExtension("java"))
-    val errors = javaFiles.toSeq.par flatMap { f =>
+    val errors = javaFiles.toSeq flatMap { f =>
       import org.eclipse.jdt.core.compiler.batch.BatchCompiler
       val errStr = new StringWriter()
       val err = new PrintWriter(errStr)

@@ -1,0 +1,6 @@
+
+// A class type signature gives complete type information for a class or
+// interface type. The class type signature must be formulated such that
+// it can be reliably mapped to the binary name of the class it denotes
+// by erasing any type arguments and converting each ‘.’ character
+// in the signature to a ‘$’ character.

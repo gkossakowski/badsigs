@@ -1,54 +1,45 @@
-CD=`cd "$(dirname $0)" && pwd`
-cd "$CD"
+#!/usr/bin/env bash
+#
 
-if [ -z $1 ]
-then
-  echo "Pass path to a jar or classes directory as a first argument."
-  exit 1
-fi
-LOCATION="$1"
+# This is important when you're doing lots of (or any) "rm -rf"ing
+# in a script.  It makes it stop on any error.
+set -e
 
-BADSIGS_JAR="target/badsigs-assembly-0.1-SNAPSHOT.jar"
-if [ ! -f "$BADSIGS_JAR" ]
-then
+DIR=$(cd $(dirname $0) && pwd)
+echo "Root is $DIR"
+
+WD=$(mktemp -d -t badsigs)
+echo "Working dir is $WD"
+mkdir -p "$WD/src" "$WD/classes"
+
+LOCATION="$DIR/${1:-classes}"
+FILTER=${2:-""}
+BADSIGS_JAR=$(echo "$DIR"/target/badsigs-assembly-*.jar)
+
+if [[ ! -f "$BADSIGS_JAR" ]]; then
+  # xsbt assembly
   echo "Compile project with sbt 0.10.x, first. Run \`assembly\` sbt command."
   exit 1
 fi
 
-WD="$CD/badsigs_working_dir"
-if [ -d $WD ]
-then
-  echo "Cleaning up $WD"
-  rm -rf $WD
-fi
-mkdir $WD
+cd "$WD/classes"
 
-CLASSES="$WD/classes"
-mkdir "$CLASSES"
-
-if [ -f "$LOCATION" ]
-then
-  cd $CLASSES
+if [[ -f "$LOCATION" ]]; then
   jar xf $LOCATION
-  cd $CD
-elif [ -d "$LOCATION" ]
-then
-  cp -R "$LOCATION"/* $CLASSES
+elif [[ -d "$LOCATION" ]]; then
+  cp -R "$LOCATION"/* .
 else
   echo "Bad location $LOCATION passed. Pass path to either jar or classes directory."
   exit 1
 fi
 
-SRC="$WD/src"
-
 echo "Checking $LOCATION:"
-if [ -f "$CLASSES/library.properties" ]
-then
+if [[ -f "$CLASSES/library.properties" ]]; then
   cat $CLASSES/library.properties
   echo ""
 fi
 
 echo "Running Main app (will generate Java files and run ecj)"
-java -jar "$BADSIGS_JAR" $CLASSES $SRC
+java -jar "$BADSIGS_JAR" "$WD/classes" "$WD/src" "$FILTER"
 
 exit $?
