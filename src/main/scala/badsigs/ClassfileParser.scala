@@ -235,9 +235,12 @@ var in: BufferReader = _  // the class file reader
     val anonymous = innerClassesRaw.exists {
       case InnerClassEntryRaw(innerIndex, _, nameIndex, _) => innerIndex == classNameIdx && nameIndex == 0
     }
+    val notClassMember = innerClassesRaw.exists {
+      case InnerClassEntryRaw(innerIndex, outerIndex, _, _) => innerIndex == classNameIdx && outerIndex == 0
+    }
     val attrs = parseAttributes
     ClassDef(externalName.replace('/', '.'), flags, superclass, interfaces, fields, methods, attrs.get("Signature"),
-        attrs, anonymous, innerClasses)
+        attrs, anonymous, notClassMember, innerClasses)
   }
 
   def skipAttributes() {

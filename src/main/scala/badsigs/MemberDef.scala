@@ -58,6 +58,7 @@ case class ClassDef(name: String,
                     javasig: Option[String],
                     attrs: Map[String, String],
                     anonymous: Boolean,
+                    notClassMember: Boolean,
                     innerClasses: Map[String, InnerClassEntry]) {
   override def toString = "%s extends %s\n\t%s".format(name, (superclass :: interfaces).mkString("", " with ", ""), javasig.getOrElse(""))
 

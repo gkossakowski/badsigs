@@ -45,7 +45,7 @@ object Main {
         x.hasFlag(JAVA_ACC_PUBLIC)
       }
 
-      classes.filter(isPublic).zipWithIndex foreach {
+      classes.filter(isPublic).filterNot(_.notClassMember).zipWithIndex foreach {
         case (clazz, i) =>
           val importedType = JavaNames.sourceName(clazz.name, clazz.innerClasses)
           if (JavaNames.isValid(importedType)) {
