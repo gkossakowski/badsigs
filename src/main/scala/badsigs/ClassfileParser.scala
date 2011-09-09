@@ -11,7 +11,7 @@ import scala.collection.mutable.ArrayBuffer
 import scala.tools.nsc.symtab.classfile.ClassfileConstants._
 import scala.annotation.switch
 import scala.tools.nsc.io._
-import scala.io.UTF8Codec
+import scala.io.Codec
 import scala.collection.immutable
 
 
@@ -102,7 +102,10 @@ var in: BufferReader = _  // the class file reader
       if (name eq null) {
         val start = starts(index)
         if (in.buf(start).toInt != CONSTANT_UTF8) errorBadTag(start)
-        name = UTF8Codec.decode(in.buf, start + 3, in.getChar(start + 1))
+        val len = in.getChar(start + 1)
+        val bytes = Array.ofDim[Byte](len)
+        Array.copy(in.buf, start + 3, bytes, 0, len) 
+        name = Codec.fromUTF8(bytes) mkString ""
         values(index) = name
       }
       name
