@@ -8,7 +8,7 @@ set -e
 DIR=$(cd $(dirname $0) && pwd)
 echo "Root is $DIR"
 
-WD=$(mktemp -d -t badsigs)
+WD=$(mktemp -d /tmp/badsigs.XXXXX)
 echo "Working dir is $WD"
 mkdir -p "$WD/src" "$WD/classes"
 
