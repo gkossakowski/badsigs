@@ -1,3 +1,5 @@
+import AssemblyKeys._
+
 name := "badsigs"
 
 version := "0.1-SNAPSHOT"
@@ -12,3 +14,5 @@ libraryDependencies <<= (scalaVersion)(sv =>
     "org.eclipse.jdt.core.compiler" % "ecj" % "3.7"
   )
 )
+
+seq(assemblySettings: _*)
