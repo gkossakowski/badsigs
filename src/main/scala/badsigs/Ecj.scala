@@ -11,7 +11,7 @@ object Ecj {
       import org.eclipse.jdt.core.compiler.batch.BatchCompiler
       val errStr = new StringWriter()
       val err = new PrintWriter(errStr)
-      val cmd = "-1.5 -nowarn -d none -classpath %1s %2s".format(cp, f.toString) 
+      val cmd = "-1.5 -nowarn -d none -classpath %1s %2s".format(cp, f.toString)
       val success = BatchCompiler.compile(cmd, new PrintWriter(System.out), err, null);
       if (success) None else Some(errStr.toString)
     }
