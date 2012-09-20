@@ -12,7 +12,9 @@ WD=$(mktemp -d /tmp/badsigs.XXXXX)
 echo "Working dir is $WD"
 mkdir -p "$WD/src" "$WD/classes"
 
-LOCATION="$DIR/${1:-classes}"
+LOCATION="${1:-classes}"
+# Make the path absolute, but only if it isn't already
+[[ $LOCATION == /* ]] || LOCATION="$DIR/$LOCATION"
 FILTER=${2:-""}
 BADSIGS_JAR=$(echo "$DIR"/target/badsigs-assembly-*.jar)
 
