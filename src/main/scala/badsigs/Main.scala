@@ -45,7 +45,18 @@ object Main {
         x.hasFlag(JAVA_ACC_PUBLIC)
       }
 
-      classes.filter(isPublic).filterNot(_.notClassMember).zipWithIndex foreach {
+      def blacklisted(x: ClassDef): Boolean = {
+        // this blacklist consists of classes that are known to be not importable from Java
+        // we probably should have a better criteria instead of just hard-coded blacklist
+        // but I failed at coming up with one
+        val blacklist: Set[String] = Set("scala.languageFeature$experimental$macros$",
+            "scala.languageFeature$experimental$macros", "scala.reflect.base.Base$build$emptyValDef$")
+        blacklist.contains(x.name)
+      }
+
+      def validCandidateForJavaImport(x: ClassDef): Boolean = isPublic(x) && !x.notClassMember && !blacklisted(x)
+
+      classes.filter(validCandidateForJavaImport).zipWithIndex foreach {
         case (clazz, i) =>
           val importedType = JavaNames.sourceName(clazz.name, clazz.innerClasses)
           if (JavaNames.isValid(importedType)) {
